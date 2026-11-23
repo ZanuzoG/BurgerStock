@@ -22,6 +22,8 @@ public class Main {
         for (Usuario u : Usuario.listaUsuarios) {
             System.out.println("- " + u.getNome() + " | CPF " + u.getCpf() + " | " + u.getEmail() + " | " + u.getPerfil());
         }
+        // A senha fica guardada como SHA-256, o mesmo valor da coluna usuarios.senha_hash do banco.
+        System.out.println("Senha do Carlos guardada como hash: " + gerente.getSenhaHash());
 
         try {
             Usuario.cadastrarSe("Outra Ana", "999.888.777-66", "ana@burger.com", "outra123");
@@ -77,10 +79,11 @@ public class Main {
         System.out.println("Lembrete para e-mail não cadastrado: " + Usuario.solicitarLembreteSenha("ninguem@burger.com"));
 
         // 2. CADASTRANDO CATEGORIAS E FORNECEDORES --------------------------------
-        Categoria catCarnes = new Categoria(1, "Carnes", "Blends bovinos e bacon");
+        // Os ids são gerados no cadastro, como o IDENTITY do banco.
+        Categoria catCarnes = new Categoria(null, "Carnes", "Blends bovinos e bacon");
         catCarnes.cadastrar();
 
-        Categoria catPaes = new Categoria(2, "Pães", "Pães artesanais");
+        Categoria catPaes = new Categoria(null, "Pães", "Pães artesanais");
         catPaes.cadastrar();
 
         Fornecedor acougue = new Fornecedor(null, "Frigorífico Boi Bom", "12.345.678/0001-99", "(17) 99999-1111", "contato@boibom.com");
@@ -94,11 +97,11 @@ public class Main {
         }
 
         // 3. CADASTRANDO INSUMOS E ASSOCIANDO FORNECEDORES ------------------------
-        Insumo blendCarne = new Insumo(1, "Blend Bovino 180g", "Carne moída fresca", "kg", 10.0, catCarnes);
+        Insumo blendCarne = new Insumo(null, "Blend Bovino 180g", "Carne moída fresca", "kg", 10.0, catCarnes);
         blendCarne.cadastrar();
         blendCarne.associarFornecedor(acougue);
 
-        Insumo paoBrioche = new Insumo(2, "Pão Brioche", "Pão selado na manteiga", "unidade", 30.0, catPaes);
+        Insumo paoBrioche = new Insumo(null, "Pão Brioche", "Pão selado na manteiga", "unidade", 30.0, catPaes);
         paoBrioche.cadastrar();
         paoBrioche.associarFornecedor(padaria);
 

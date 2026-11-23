@@ -16,7 +16,7 @@ public class Lote {
 
     private ItemPedidoCompra itemPedido;
 
-    // Lotes do sistema (equivale à tabela "lote").
+    // Lotes do sistema (equivale à tabela "lotes").
     public static List<Lote> listaLotes = new ArrayList<>();
 
     public Lote() {
@@ -162,8 +162,15 @@ public class Lote {
     }
 
     private void registrar(TipoMovimentacao tipo, String motivo, double quantidade, Usuario usuario) {
-        if (usuario == null) {
+        if (!listaLotes.contains(this)) {
+            throw new IllegalStateException("O lote precisa estar cadastrado para ser movimentado.");
+        }
+        if (usuario == null || !Usuario.listaUsuarios.contains(usuario)) {
             throw new IllegalArgumentException("Informe o usuário responsável pela movimentação.");
+        }
+        // REGISTRAR_ENTRADA, REGISTRAR_SAIDA, REGISTRAR_PERDA ou REGISTRAR_AJUSTE (este só o gerente)
+        if (!usuario.temPermissao("REGISTRAR_" + tipo.name())) {
+            throw new IllegalStateException("Seu perfil não permite registrar " + tipo.name() + ".");
         }
         MovimentacaoEstoque mov = new MovimentacaoEstoque(
                 null, tipo, motivo, quantidade, new Date(), null, this, usuario

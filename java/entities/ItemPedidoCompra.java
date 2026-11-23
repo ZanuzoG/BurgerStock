@@ -17,7 +17,7 @@ public class ItemPedidoCompra {
     private Insumo insumo;
     private Lote lote; // fica vazio até a conferência da entrega
 
-    // Itens de todos os pedidos (equivale à tabela "item_pedido_compra").
+    // Itens de todos os pedidos (equivale à tabela "itens_pedido_compra").
     public static List<ItemPedidoCompra> listaItens = new ArrayList<>();
 
     public ItemPedidoCompra() {

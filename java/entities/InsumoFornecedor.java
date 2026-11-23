@@ -12,6 +12,7 @@ public class InsumoFornecedor {
     private Insumo insumo;
     private Fornecedor fornecedor;
 
+    // Vínculos do sistema (equivale à tabela "insumo_fornecedor").
     public static List<InsumoFornecedor> listaVinculos = new ArrayList<>();
 
     public InsumoFornecedor() {}

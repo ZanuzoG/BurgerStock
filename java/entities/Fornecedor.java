@@ -6,7 +6,7 @@ import java.util.List;
 /** Empresa que fornece insumos (pessoa jurídica). Herda id, nome, e-mail e telefone de Pessoa. */
 public class Fornecedor extends Pessoa {
 
-    // Fornecedores do sistema (equivale à tabela "fornecedor").
+    // Fornecedores do sistema (equivale à tabela "fornecedores").
     public static List<Fornecedor> listaFornecedores = new ArrayList<>();
 
     private String cnpj;

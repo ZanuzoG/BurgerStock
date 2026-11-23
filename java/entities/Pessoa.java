@@ -6,11 +6,11 @@ import java.util.List;
 /**
  * Dados comuns a usuários e fornecedores (generalização).
  * É abstrata: no sistema toda pessoa é um Usuario ou um Fornecedor.
- * No banco de dados vira a tabela "pessoa"; "usuario" e "fornecedor" usam o mesmo id.
+ * No banco de dados vira a tabela "pessoas"; "usuarios" e "fornecedores" usam o mesmo id.
  */
 public abstract class Pessoa {
 
-    // Todas as pessoas do sistema (equivale à tabela "pessoa").
+    // Todas as pessoas do sistema (equivale à tabela "pessoas").
     public static List<Pessoa> listaPessoas = new ArrayList<>();
 
     private Integer id;

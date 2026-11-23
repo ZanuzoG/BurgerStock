@@ -22,7 +22,7 @@ public class PedidoCompra {
     private Usuario usuario; // quem fez o pedido
     private List<ItemPedidoCompra> itens = new ArrayList<>();
 
-    // Pedidos do sistema (equivale à tabela "pedido_compra").
+    // Pedidos do sistema (equivale à tabela "pedidos_compra").
     public static List<PedidoCompra> listaPedidos = new ArrayList<>();
 
     public PedidoCompra() {
@@ -40,11 +40,15 @@ public class PedidoCompra {
         if (listaPedidos.contains(this)) {
             throw new IllegalStateException("Este pedido já foi cadastrado.");
         }
-        if (this.fornecedor == null || !this.fornecedor.isAtivo()) {
+        if (this.fornecedor == null || !this.fornecedor.isAtivo()
+                || !Fornecedor.listaFornecedores.contains(this.fornecedor)) {
             throw new IllegalArgumentException("Informe um fornecedor ativo.");
         }
-        if (this.usuario == null) {
+        if (this.usuario == null || !Usuario.listaUsuarios.contains(this.usuario)) {
             throw new IllegalArgumentException("Informe o usuário que fez o pedido.");
+        }
+        if (!this.usuario.temPermissao("FAZER_PEDIDO_COMPRA")) {
+            throw new IllegalStateException("Somente um gerente pode fazer pedido de compra.");
         }
         if (this.id == null) {
             this.id = listaPedidos.size() + 1;

@@ -13,6 +13,7 @@ public class MovimentacaoEstoque {
     private Lote lote;
     private Usuario usuario;
 
+    // Movimentações do sistema (equivale à tabela "movimentacoes_estoque").
     public static List<MovimentacaoEstoque> listaMovimentacoes = new ArrayList<>();
 
     public MovimentacaoEstoque() {

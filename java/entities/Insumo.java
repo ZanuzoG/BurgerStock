@@ -15,6 +15,7 @@ public class Insumo {
     private boolean ativo;
     private Categoria categoria;
 
+    // Insumos do sistema (equivale à tabela "insumos").
     public static List<Insumo> listaInsumos = new ArrayList<>();
 
     public Insumo() {
@@ -37,23 +38,57 @@ public class Insumo {
         this.categoria = categoria;
     }
 
-    // Métodos de negócio do UML
+    /**
+     * Valida os dados, gera o id, ativa o insumo e guarda na lista.
+     * Nome, unidade de medida e categoria são obrigatórios; sem estoque mínimo, ele fica 0.
+     */
     public void cadastrar() {
-        if (this.nome != null && !this.nome.trim().isEmpty()) {
-            this.ativo = true;
-            listaInsumos.add(this);
+        if (listaInsumos.contains(this)) {
+            throw new IllegalStateException("Este insumo já foi cadastrado.");
         }
+        if (this.nome == null || this.nome.trim().isEmpty()) {
+            throw new IllegalArgumentException("Informe o nome do insumo.");
+        }
+        if (this.unidadeMedida == null || this.unidadeMedida.trim().isEmpty()) {
+            throw new IllegalArgumentException("Informe a unidade de medida.");
+        }
+        if (this.estoqueMinimo == null) {
+            this.estoqueMinimo = 0.0;
+        }
+        if (this.estoqueMinimo < 0) {
+            throw new IllegalArgumentException("O estoque mínimo não pode ser negativo.");
+        }
+        if (this.categoria == null || !Categoria.listaCategorias.contains(this.categoria)) {
+            throw new IllegalArgumentException("Informe uma categoria cadastrada.");
+        }
+        this.nome = this.nome.trim();
+        this.unidadeMedida = this.unidadeMedida.trim();
+        if (this.descricao != null && this.descricao.trim().isEmpty()) {
+            this.descricao = null;
+        }
+        if (this.id == null) {
+            this.id = listaInsumos.size() + 1;
+        }
+        this.ativo = true;
+        listaInsumos.add(this);
     }
 
-    /** Vincula este insumo a um fornecedor. Não permite repetir a mesma combinação. */
+    /**
+     * Vincula este insumo a um fornecedor. Os dois precisam estar cadastrados,
+     * e a mesma combinação não pode se repetir.
+     */
     public void associarFornecedor(Fornecedor fornecedor) {
-        if (fornecedor != null) {
-            if (InsumoFornecedor.existeVinculo(this, fornecedor)) {
-                throw new IllegalStateException("Este insumo já está associado a este fornecedor.");
-            }
-            InsumoFornecedor vinculo = new InsumoFornecedor(null, this, fornecedor);
-            InsumoFornecedor.listaVinculos.add(vinculo);
+        if (!listaInsumos.contains(this)) {
+            throw new IllegalStateException("Cadastre o insumo antes de associar um fornecedor.");
         }
+        if (fornecedor == null || !Fornecedor.listaFornecedores.contains(fornecedor)) {
+            throw new IllegalArgumentException("Informe um fornecedor cadastrado.");
+        }
+        if (InsumoFornecedor.existeVinculo(this, fornecedor)) {
+            throw new IllegalStateException("Este insumo já está associado a este fornecedor.");
+        }
+        InsumoFornecedor vinculo = new InsumoFornecedor(InsumoFornecedor.listaVinculos.size() + 1, this, fornecedor);
+        InsumoFornecedor.listaVinculos.add(vinculo);
     }
 
     public double consultarSaldo() {

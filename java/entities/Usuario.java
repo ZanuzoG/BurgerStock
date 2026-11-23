@@ -1,5 +1,8 @@
 package entities;
 
+import java.nio.charset.Charset;
+import java.security.MessageDigest;
+import java.security.NoSuchAlgorithmException;
 import java.security.SecureRandom;
 import java.util.ArrayList;
 import java.util.List;
@@ -23,11 +26,15 @@ public class Usuario extends Pessoa {
     private static final String CARACTERES_SENHA = "ABCDEFGHJKLMNPQRSTUVWXYZabcdefghijkmnpqrstuvwxyz23456789";
     private static final SecureRandom ALEATORIO = new SecureRandom();
 
-    // Usuários do sistema (equivale à tabela "usuario").
+    // Mesma codificação das colunas VARCHAR do banco (collation Latin1_General),
+    // para o hash de uma senha com acento ficar igual ao do HASHBYTES.
+    private static final Charset CODIFICACAO_BANCO = Charset.forName("windows-1252");
+
+    // Usuários do sistema (equivale à tabela "usuarios").
     public static List<Usuario> listaUsuarios = new ArrayList<>();
 
     private String cpf;
-    private String senhaHash;
+    private String senhaHash; // SHA-256 da senha, como na coluna usuarios.senha_hash
     private Perfil perfil;
     private boolean ativo;
 
@@ -36,11 +43,12 @@ public class Usuario extends Pessoa {
         this.ativo = false;
     }
 
+    /** A senha chega como foi digitada; criarAcesso() confere o tamanho e guarda só o hash. */
     public Usuario(Integer id, String nome, String cpf, String email, String telefone,
-                   String senhaHash, Perfil perfil, boolean ativo) {
+                   String senha, Perfil perfil, boolean ativo) {
         super(id, nome, email, telefone);
         this.cpf = cpf;
-        this.senhaHash = senhaHash;
+        this.senhaHash = senha;
         this.perfil = perfil;
         this.ativo = ativo;
     }
@@ -83,7 +91,8 @@ public class Usuario extends Pessoa {
 
     /**
      * Criação de acesso feita pelo GERENTE: o gerente escolhe o perfil.
-     * Valida os dados, impede CPF e e-mail repetidos, ativa o usuário e guarda nas listas.
+     * Valida os dados, impede CPF e e-mail repetidos, guarda a senha como hash,
+     * ativa o usuário e guarda nas listas.
      */
     public void criarAcesso() {
         if (getEmail() == null || getEmail().trim().isEmpty()) {
@@ -102,6 +111,7 @@ public class Usuario extends Pessoa {
         }
         registrar(); // dados de Pessoa: nome, e-mail único e id
         this.cpf = cpfLimpo;
+        this.senhaHash = gerarHash(this.senhaHash);
         this.ativo = true;
         listaUsuarios.add(this);
     }
@@ -140,12 +150,12 @@ public class Usuario extends Pessoa {
         return usuario;
     }
 
-    /** Confere se a senha digitada é igual à senha cadastrada; usuário inativo não é autenticado. */
+    /** Confere se o hash da senha digitada é igual ao hash guardado; usuário inativo não é autenticado. */
     public boolean autenticar(String senha) {
         return this.ativo
                 && senha != null
                 && this.senhaHash != null
-                && this.senhaHash.equals(senha);
+                && this.senhaHash.equals(gerarHash(senha));
     }
 
     // ---------------------------------------------------------------
@@ -178,7 +188,7 @@ public class Usuario extends Pessoa {
             throw new IllegalArgumentException("A senha atual não confere.");
         }
         validarSenha(novaSenha);
-        this.senhaHash = novaSenha;
+        this.senhaHash = gerarHash(novaSenha);
     }
 
     /** Só um GERENTE ativo pode alterar o perfil de acesso de um usuário. */
@@ -197,8 +207,9 @@ public class Usuario extends Pessoa {
     // ---------------------------------------------------------------
 
     /**
-     * Lembrete de senha: gera uma senha provisória para o e-mail informado e a devolve
-     * para ser enviada ao usuário. Devolve null se o e-mail não for de um usuário ativo.
+     * Lembrete de senha: gera uma senha provisória para o e-mail informado, guarda o hash
+     * e devolve a senha para ser enviada ao usuário (o envio do e-mail é simulado).
+     * Devolve null se o e-mail não for de um usuário ativo.
      */
     public static String solicitarLembreteSenha(String email) {
         Usuario usuario = buscarPorEmail(email);
@@ -209,8 +220,8 @@ public class Usuario extends Pessoa {
         for (int i = 0; i < 8; i++) {
             provisoria.append(CARACTERES_SENHA.charAt(ALEATORIO.nextInt(CARACTERES_SENHA.length())));
         }
-        usuario.senhaHash = provisoria.toString();
-        return usuario.senhaHash;
+        usuario.senhaHash = gerarHash(provisoria.toString());
+        return provisoria.toString();
     }
 
     // ---------------------------------------------------------------
@@ -235,6 +246,23 @@ public class Usuario extends Pessoa {
             }
         }
         return null;
+    }
+
+    /**
+     * SHA-256 da senha em hexadecimal maiúsculo, igual ao que o banco grava com
+     * CONVERT(VARCHAR(64), HASHBYTES('SHA2_256', senha), 2).
+     */
+    private static String gerarHash(String senha) {
+        try {
+            byte[] resumo = MessageDigest.getInstance("SHA-256").digest(senha.getBytes(CODIFICACAO_BANCO));
+            StringBuilder hex = new StringBuilder();
+            for (byte b : resumo) {
+                hex.append(String.format("%02X", b));
+            }
+            return hex.toString();
+        } catch (NoSuchAlgorithmException e) {
+            throw new IllegalStateException("SHA-256 não está disponível nesta versão do Java.", e);
+        }
     }
 
     private static void validarSenha(String senha) {
