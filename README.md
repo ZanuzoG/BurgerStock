@@ -97,7 +97,7 @@ As regras de negócio também estão no banco: chaves estrangeiras, valores acei
 
 ## Tecnologias
 
-Java · SQL Server (T-SQL) · HTML, CSS e JavaScript · Git e GitHub
+Java · SQL Server (T-SQL) · HTML, CSS e JavaScript · GitHub
 
 ## Equipe
 
